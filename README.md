@@ -31,7 +31,7 @@ keeps that split explicit and uses it as the throughline across all four tasks:
 | 1 — Deploy & Harden the Workload | [`task1-hardening/`](task1-hardening/README.md) | Complete, deployed and verified in-cluster |
 | 2 — Secure CI/CD Pipeline & Supply Chain | [`task2-cicd/`](task2-cicd/README.md) | Complete: pipeline green end-to-end, image built/scanned/signed/attested, Kyverno admission policy enforcing the real signature |
 | 3 — Service Mesh & Zero-Trust (Istio) | [`task3-mesh/`](task3-mesh/README.md) | Complete, deployed and verified in-cluster |
-| 4 — Recon & Penetration Testing | [`task4-pentest/`](task4-pentest/recon-report.md) ([pentest report](task4-pentest/pentest-report.md)) | Complete: passive recon + 4 findings, exploited, remediated, retested closed |
+| 4 — Recon & Penetration Testing | [`task4-pentest/`](task4-pentest/recon-report.md) ([pentest report](task4-pentest/pentest-report.md), [PDF](task4-pentest/pentest-report.pdf)) | Complete: passive recon + 6 findings (incl. a full unauthenticated-RCE-to-root chain), exploited, remediated, retested closed |
 
 ## Architecture
 
