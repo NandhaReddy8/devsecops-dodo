@@ -1,0 +1,11 @@
+*   Trying 10.244.1.14:8080...
+* Connected to 10.244.1.14 (10.244.1.14) port 8080
+> GET /health HTTP/1.1
+> Host: 10.244.1.14:8080
+> User-Agent: curl/8.8.0
+> Accept: */*
+> 
+* Request completely sent off
+* Recv failure: Connection reset by peer
+* Closing connection
+command terminated with exit code 56

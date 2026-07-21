@@ -1,0 +1,20 @@
+title = "gitleaks config - dodo-devsecops"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known-safe patterns: encrypted SealedSecrets ciphertext, and pentest-report evidence quoting the assignment's own placeholder/test values"
+regexes = [
+  # kubeseal ciphertext is asymmetrically encrypted with the cluster's public
+  # key - it is explicitly designed to be safe to commit to git and is
+  # useless without the in-cluster controller's private key.
+  '''AgC[A-Za-z0-9+/=]{100,}''',
+]
+paths = [
+  # Pentest report/evidence intentionally quotes the assignment's own
+  # REDACTED placeholder secret (as PoC evidence of Finding 3's exposure)
+  # and a made-up test-only retest bearer token - neither is a live
+  # credential.
+  '''task4-pentest/.*''',
+]

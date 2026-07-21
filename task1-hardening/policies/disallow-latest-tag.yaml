@@ -1,0 +1,40 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Images must be pinned to an explicit, immutable tag (or digest) and
+      must not use the mutable ":latest" tag.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  failurePolicy: Ignore
+  rules:
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              namespaces: ["payments"]
+      validate:
+        message: "An explicit image tag is required (no tag-less references)."
+        pattern:
+          spec:
+            containers:
+              - image: "*:*"
+    - name: validate-image-tag
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              namespaces: ["payments"]
+      validate:
+        message: "Using a mutable image tag such as :latest is not allowed."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"

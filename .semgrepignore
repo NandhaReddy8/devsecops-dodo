@@ -1,0 +1,17 @@
+# apps/ledger-api/vulnerable-original/ is a deliberately-preserved, unmodified
+# copy of the original vulnerable app - the Task 4B pentest target and the
+# "before" baseline for the CVE/SAST comparison. It is never built into the
+# deployed image (the Dockerfile only COPYs app.py/requirements.txt from
+# apps/ledger-api/ directly, not this subdirectory) and is not shippable
+# code, so it is intentionally out of scope for the SAST gate that governs
+# what's allowed to ship. See apps/ledger-api/vulnerable-original/README.md.
+apps/ledger-api/vulnerable-original/
+
+# task4-pentest/evidence/ holds the penetration-test PoC tooling and captured
+# evidence - deliberately weaponized exploit scripts (YAML-deserialization RCE
+# gadgets, os.system/exec/subprocess payloads, dynamic urllib clients, an unsafe
+# yaml.load harness) whose entire purpose is to *demonstrate* the vulnerabilities
+# in the Task 4B report. This is attacker tooling, not shippable application
+# code, so it is out of scope for the SAST gate - same rationale as
+# vulnerable-original/ above.
+task4-pentest/evidence/

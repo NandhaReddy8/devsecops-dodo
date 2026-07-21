@@ -1,0 +1,64 @@
+
+Report Summary
+
+┌──────────────────┬──────┬─────────────────┐
+│      Target      │ Type │ Vulnerabilities │
+├──────────────────┼──────┼─────────────────┤
+│ requirements.txt │ pip  │       12        │
+└──────────────────┴──────┴─────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+requirements.txt (pip)
+======================
+Total: 12 (HIGH: 9, CRITICAL: 3)
+
+┌──────────┬──────────────────┬──────────┬────────┬───────────────────┬───────────────┬──────────────────────────────────────────────────────────────┐
+│ Library  │  Vulnerability   │ Severity │ Status │ Installed Version │ Fixed Version │                            Title                             │
+├──────────┼──────────────────┼──────────┼────────┼───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ Flask    │ CVE-2018-1000656 │ HIGH     │ fixed  │ 0.12.2            │ 0.12.3        │ python-flask: Denial of Service via crafted JSON file        │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2018-1000656                 │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2019-1010083 │          │        │                   │ 1.0           │ python-flask: unexpected memory usage can lead to denial of  │
+│          │                  │          │        │                   │               │ service via crafted...                                       │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2019-1010083                 │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2023-30861   │          │        │                   │ 2.3.2, 2.2.5  │ flask: Possible disclosure of permanent session cookie due   │
+│          │                  │          │        │                   │               │ to missing Vary: Cookie...                                   │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2023-30861                   │
+├──────────┼──────────────────┤          │        ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ Jinja2   │ CVE-2019-10906   │          │        │ 2.10              │ 2.10.1        │ python-jinja2: str.format_map allows sandbox escape          │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2019-10906                   │
+├──────────┼──────────────────┼──────────┤        ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ PyYAML   │ CVE-2019-20477   │ CRITICAL │        │ 5.1               │ 5.2           │ PyYAML: command execution through python/object/apply        │
+│          │                  │          │        │                   │               │ constructor in FullLoader                                    │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2019-20477                   │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2020-14343   │          │        │                   │ 5.4           │ PyYAML: incomplete fix for CVE-2020-1747                     │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2020-14343                   │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2020-1747    │          │        │                   │ 5.3.1         │ PyYAML: arbitrary command execution through                  │
+│          │                  │          │        │                   │               │ python/object/new when FullLoader is used                    │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2020-1747                    │
+├──────────┼──────────────────┼──────────┤        ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ Werkzeug │ CVE-2019-14322   │ HIGH     │        │ 0.14.1            │ 0.15.5        │ Pallets Werkzeug vulnerable to Path Traversal                │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2019-14322                   │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2019-14806   │          │        │                   │ 0.15.3        │ python-werkzeug: insufficient debugger PIN randomness        │
+│          │                  │          │        │                   │               │ vulnerability                                                │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2019-14806                   │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2023-25577   │          │        │                   │ 2.2.3         │ python-werkzeug: high resource usage when parsing multipart  │
+│          │                  │          │        │                   │               │ form data with many fields...                                │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2023-25577                   │
+│          ├──────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│          │ CVE-2024-34069   │          │        │                   │ 3.0.3         │ python-werkzeug: user may execute code on a developer's      │
+│          │                  │          │        │                   │               │ machine                                                      │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2024-34069                   │
+├──────────┼──────────────────┤          │        ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ requests │ CVE-2018-18074   │          │        │ 2.19.1            │ 2.20.0        │ python-requests: Redirect from HTTPS to HTTP does not remove │
+│          │                  │          │        │                   │               │ Authorization header                                         │
+│          │                  │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2018-18074                   │
+└──────────┴──────────────────┴──────────┴────────┴───────────────────┴───────────────┴──────────────────────────────────────────────────────────────┘

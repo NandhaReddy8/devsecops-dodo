@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../../../task1-hardening/base
+images:
+- digest: sha256:a9afa6691a6968b3e15d4904578ab03876b0b9f2a6e604b6076d489fbf40cf6c
+  name: ledger-api
+  newName: ghcr.io/nandhareddy8/ledger-api

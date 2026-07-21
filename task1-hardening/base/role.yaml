@@ -1,0 +1,24 @@
+# Least privilege: ledger-api does not talk to the Kubernetes API at all.
+# This Role is intentionally empty (no rules) and exists only so a
+# RoleBinding can be audited; automountServiceAccountToken is also false
+# on the ServiceAccount, so no token is even mounted into the pod.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ledger-api-role
+  namespace: payments
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ledger-api-rolebinding
+  namespace: payments
+subjects:
+  - kind: ServiceAccount
+    name: ledger-api-sa
+    namespace: payments
+roleRef:
+  kind: Role
+  name: ledger-api-role
+  apiGroup: rbac.authorization.k8s.io

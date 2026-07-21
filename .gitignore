@@ -1,0 +1,40 @@
+# Secrets - plaintext must never land here (see task1-hardening/secrets/
+# for the SealedSecret pattern that replaces this).
+*.pem
+*.key
+*.pfx
+raw-secret*.yaml
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Downloaded tool binaries (installed to /usr/local/bin outside the repo,
+# never meant to be committed if a stray copy ends up here)
+/gitleaks
+/trivy
+/kubeseal
+/cosign
+/kind
+*.tar.gz
+
+# Local scratch / debugging output (not deliverables - anything like a CI
+# log dump or one-off polling script belongs on the machine that made it,
+# not in the submitted repo)
+*.local.md
+*-scratch.*
+ci-fail-log.txt
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/

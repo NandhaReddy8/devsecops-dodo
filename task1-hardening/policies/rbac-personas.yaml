@@ -1,0 +1,45 @@
+# Least-privilege RBAC personas for the payments namespace.
+# Bind real users/groups to these Roles via RoleBinding subjects as needed;
+# none are auto-bound here since no external identity provider is wired up
+# in this local assessment.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: payments-developer
+  namespace: payments
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: payments-operator
+  namespace: payments
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"] # allow rolling restarts via pod eviction
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: payments-admin
+  namespace: payments
+rules:
+  - apiGroups: ["", "apps", "networking.k8s.io", "bitnami.com"]
+    resources: ["*"]
+    verbs: ["*"]

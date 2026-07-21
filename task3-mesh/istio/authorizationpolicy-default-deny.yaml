@@ -1,0 +1,8 @@
+# Default-deny: an empty spec.rules with no selector matches every workload
+# in the namespace and denies all traffic unless explicitly allowed below.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny-all
+  namespace: payments
+spec: {}

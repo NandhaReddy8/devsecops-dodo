@@ -1,0 +1,19 @@
+=== cosign verify output (real CI run, not simulated) ===
+Run: https://github.com/NandhaReddy8/devsecops-dodo/actions/runs/29757941399
+
+$ cosign verify \
+  --certificate-identity-regexp "^https://github.com/NandhaReddy8/devsecops-dodo/.github/workflows/ci.yml@refs/heads/main$" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/nandhareddy8/ledger-api@sha256:b35968f17be874159e9e9eacda8b0b3769d692f0a5d2ffa9eb16dcc978909564
+
+Verification for ghcr.io/nandhareddy8/ledger-api@sha256:b35968f17be874159e9e9eacda8b0b3769d692f0a5d2ffa9eb16dcc978909564 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - Existence of the claims in the transparency log was verified offline
+  - The code-signing certificate was verified using trusted certificate authority certificates
+
+Certificate subject: https://github.com/NandhaReddy8/devsecops-dodo/.github/workflows/ci.yml@refs/heads/main
+Certificate issuer:  https://token.actions.githubusercontent.com
+githubWorkflowRepository: NandhaReddy8/devsecops-dodo
+githubWorkflowSha: e6ab3d290105e0e936f2ccecacf8217b1503ffb7
+githubWorkflowTrigger: push

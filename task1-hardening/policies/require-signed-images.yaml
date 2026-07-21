@@ -1,0 +1,44 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images
+  annotations:
+    policies.kyverno.io/title: Require Cosign-Signed Images
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Requires container images in the payments namespace to be signed via
+      cosign keyless (Fulcio/Rekor), verified against the GitHub Actions
+      OIDC identity of the Task 2 CI workflow.
+
+      Enforce mode as of 2026-07-20: the Task 2 pipeline produced a real
+      cosign signature (see docs/screenshots/task2-cosign-verify.txt and
+      run https://github.com/NandhaReddy8/devsecops-dodo/actions/runs/29757941399),
+      and the subject/issuer below are the exact values from that verified
+      run - not placeholders. Deliberately scoped to namespaces: [payments]
+      only (not cluster-wide) so kube-system/kyverno/istio-system/
+      ingress-nginx are never touched by this rule.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  failurePolicy: Ignore
+  rules:
+    - name: verify-cosign-keyless-signature
+      match:
+        any:
+          - resources:
+              kinds: ["Pod"]
+              namespaces: ["payments"]
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/nandhareddy8/ledger-api*"
+          mutateDigest: false
+          attestors:
+            - count: 1
+              entries:
+                - keyless:
+                    subject: "https://github.com/NandhaReddy8/devsecops-dodo/.github/workflows/ci.yml@refs/heads/main"
+                    issuer: "https://token.actions.githubusercontent.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev

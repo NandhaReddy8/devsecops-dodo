@@ -1,0 +1,32 @@
+# L3/L4 floor underneath the Istio L7 identity layer: only the reporting
+# neighbour and the ingress-nginx controller may open a connection to
+# ledger-api at all, regardless of what Istio authz would separately allow.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ledger-api-ingress
+  namespace: payments
+spec:
+  podSelector:
+    matchLabels:
+      app: ledger-api
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reporting
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 15006 # istio-proxy inbound intercept port
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 15006

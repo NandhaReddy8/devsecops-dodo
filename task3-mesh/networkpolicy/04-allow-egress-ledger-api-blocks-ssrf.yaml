@@ -1,0 +1,33 @@
+# Egress default-deny on ledger-api means the SSRF sink at GET /fetch?url=
+# cannot reach anything outside the explicitly allowed destinations below
+# - this is what actually neutralises SSRF at the network layer (V1 in
+# the SSRF finding in task4-pentest/pentest-report.md), independent of whatever the application code does.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ledger-api-egress
+  namespace: payments
+spec:
+  podSelector:
+    matchLabels:
+      app: ledger-api
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014
+        - protocol: TCP
+          port: 15017
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

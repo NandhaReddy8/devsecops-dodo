@@ -1,0 +1,22 @@
+# Explicit allow keyed on workload identity (SPIFFE / ServiceAccount), not
+# IP. Only the "reporting" neighbour, authenticated via its own
+# ServiceAccount-derived SPIFFE identity, may call ledger-api, and only
+# GET /health and GET /transactions.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-reporting-to-ledger-api
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: ledger-api
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/reporting-sa"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/transactions"]

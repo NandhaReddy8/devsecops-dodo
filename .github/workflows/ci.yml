@@ -1,0 +1,226 @@
+name: ledger-api CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "gitops/**" # avoid retriggering on the pipeline's own digest-bump commits
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {} # allow manual re-runs (e.g. after a history rewrite)
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write # required for cosign keyless OIDC
+  security-events: write # required for SARIF upload to the Security tab
+  attestations: write # required for actions/attest-build-provenance
+
+env:
+  # Hardcoded lowercase rather than ghcr.io/${{ github.repository_owner }}/...:
+  # GitHub usernames can be mixed-case (this one is "NandhaReddy8"), but
+  # OCI image references must be all-lowercase, and the Actions expression
+  # language has no case-conversion function to fix this generically.
+  IMAGE: ghcr.io/nandhareddy8/ledger-api
+
+jobs:
+  secrets-scan:
+    name: gitleaks (secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          GL_VER=$(curl -sL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+          curl -fsSL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz"
+          tar xzf gitleaks.tar.gz gitleaks
+          sudo install -m 755 gitleaks /usr/local/bin/gitleaks
+      - name: gitleaks (full working-tree scan)
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif
+        # Full-repo scan rather than the gitleaks-action's default diff-range
+        # scan: that action computes <before>^..<after> from the push event,
+        # which breaks on a repo's very first push (the range includes the
+        # root commit, which has no parent for "^" to resolve). Fail policy:
+        # HARD BLOCK on any finding. .gitleaks.toml documents the two
+        # justified allowlist entries (sealed-secret ciphertext, pentest-
+        # report evidence) - nothing else is exempted.
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: gitleaks.sarif
+
+  sast:
+    name: semgrep (SAST)
+    runs-on: ubuntu-latest
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install semgrep
+        run: pipx install semgrep
+      - name: semgrep (full scan, SARIF always written)
+        run: |
+          SEMGREP_ARGS="--config p/python --config p/flask --config p/security-audit --exclude-rule python.django.security.injection.ssrf.ssrf-injection-requests.ssrf-injection-requests"
+          semgrep scan $SEMGREP_ARGS --sarif --output semgrep.sarif .
+          semgrep scan $SEMGREP_ARGS --error .
+        # .semgrepignore excludes apps/ledger-api/vulnerable-original/ (the
+        # preserved pentest fixture, not shippable code - see that file).
+        # The excluded Django SSRF rule is redundant on this Flask-only
+        # codebase with python.flask.security.injection.ssrf-requests.ssrf-
+        # requests, which fires on the exact same sink and is suppressed
+        # inline via `# nosemgrep` with justification (see app.py) because
+        # Semgrep's single-line dataflow can't trace the app-level
+        # _is_blocked_destination() allowlist check that is the real V1
+        # fix - the Django rule's multi-line match doesn't anchor to that
+        # nosemgrep comment the same way, so it's excluded at the config
+        # level instead of chasing multi-line suppression semantics.
+        # First invocation always writes the SARIF report regardless of
+        # findings, for the Security tab; second invocation is the actual
+        # fail policy: HARD BLOCK (--error, exit 1) on any finding from
+        # these curated security rulesets (e.g. yaml.load without a safe
+        # Loader, SSRF sinks, hardcoded secrets).
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+
+  dependency-scan:
+    name: trivy fs (dependency CVEs)
+    runs-on: ubuntu-latest
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install trivy
+        run: |
+          TRIVY_VER=$(curl -sL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+          curl -fsSL -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VER}/trivy_${TRIVY_VER}_Linux-64bit.tar.gz"
+          tar xzf trivy.tar.gz trivy
+          sudo install -m 755 trivy /usr/local/bin/trivy
+          rm trivy trivy.tar.gz
+        # Direct release-binary download instead of the project's install.sh
+        # (piped into "sudo sh") - that combination failed silently in CI
+        # with no diagnosable output, a known footgun with curl|sudo sh.
+        # Version resolved dynamically (same pattern as the gitleaks step)
+        # rather than a hardcoded tag, which drifts out of existence.
+      - name: Trivy filesystem scan
+        run: |
+          trivy fs apps/ledger-api \
+            --skip-dirs apps/ledger-api/vulnerable-original \
+            --format sarif --output trivy-fs.sarif \
+            --severity CRITICAL,HIGH --exit-code 0
+          trivy fs apps/ledger-api \
+            --skip-dirs apps/ledger-api/vulnerable-original \
+            --severity CRITICAL,HIGH --exit-code 1 \
+            --ignorefile .trivyignore
+        # vulnerable-original/ is a deliberately-preserved, unmodified copy
+        # of the original vulnerable app (Task 4B pentest target) - its
+        # 2018-era, deliberately-CVE-laden dependencies are not shippable
+        # code and are out of scope for this gate. First invocation always
+        # writes the SARIF report; second is the fail policy: HARD BLOCK on
+        # Critical/High WITH a known fix available. A CVE with no fix yet
+        # is added to .trivyignore with a comment (CVE id, date found,
+        # reason, owner, review-by date) rather than silently ignored.
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs.sarif
+
+  build-and-scan-image:
+    name: build, scan image, sign, attest
+    runs-on: ubuntu-latest
+    needs: [sast, dependency-scan]
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/ledger-api
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.sha }}
+          # Never :latest - satisfies Kyverno's disallow-latest-tag policy
+          # by construction, not just by convention.
+
+      - name: Install trivy
+        run: |
+          TRIVY_VER=$(curl -sL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+          curl -fsSL -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VER}/trivy_${TRIVY_VER}_Linux-64bit.tar.gz"
+          tar xzf trivy.tar.gz trivy
+          sudo install -m 755 trivy /usr/local/bin/trivy
+          rm trivy trivy.tar.gz
+        # Direct release-binary download instead of the project's install.sh
+        # (piped into "sudo sh") - that combination failed silently in CI
+        # with no diagnosable output, a known footgun with curl|sudo sh.
+        # Version resolved dynamically (same pattern as the gitleaks step)
+        # rather than a hardcoded tag, which drifts out of existence.
+      - name: Trivy image scan
+        run: |
+          trivy image ${{ env.IMAGE }}@${{ steps.build.outputs.digest }} \
+            --format sarif --output trivy-image.sarif \
+            --severity CRITICAL,HIGH --exit-code 0
+          trivy image ${{ env.IMAGE }}@${{ steps.build.outputs.digest }} \
+            --severity CRITICAL,HIGH --exit-code 1 \
+            --ignorefile .trivyignore
+        # Fail policy: same as dependency-scan, applied to the final image
+        # layers (catches base-image CVEs the fs scan can't see).
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image.sarif
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (keyless)
+        run: cosign sign --yes ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+
+      - name: Generate SLSA provenance attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Verify signature (proof for the write-up)
+        run: |
+          cosign verify \
+            --certificate-identity-regexp "^https://github.com/${{ github.repository }}/.github/workflows/ci.yml@refs/heads/main$" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+
+  update-gitops:
+    name: bump image digest in gitops/
+    runs-on: ubuntu-latest
+    needs: build-and-scan-image
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set new image digest
+        run: |
+          cd gitops/argocd/overlays/dev
+          kustomize edit set image \
+            ledger-api=${{ env.IMAGE }}@${{ needs.build-and-scan-image.outputs.digest }}
+      - name: Commit digest bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gitops/argocd/overlays/dev/kustomization.yaml
+          git diff --staged --quiet || git commit -m "chore(gitops): bump ledger-api digest [skip ci]"
+          git push
+        # ArgoCD (pointed at gitops/) picks up this commit and syncs the
+        # cluster automatically - see gitops/argocd/application.yaml.

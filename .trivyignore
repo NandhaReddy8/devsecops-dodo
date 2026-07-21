@@ -1,0 +1,67 @@
+# Format: one CVE per line, with a comment block above explaining the
+# risk-acceptance decision. Never add a bare CVE with no justification -
+# that is exactly the "silently ignored" anti-pattern this file exists to
+# avoid (see task2-cicd/README.md fail-policy table).
+#
+# All entries below were found on the first real CI run against the
+# python:3.12-slim-bookworm base image (Debian 12.15). Every one shows no
+# fixed version yet upstream in Debian 12 as of the found date (Trivy
+# status: "affected" or "fix_deferred") - these are OS-package CVEs in the
+# base image, not in ledger-api's own code or Python dependencies. Risk
+# accepted short-term because the app runs non-root, read-only-root-fs,
+# all-capabilities-dropped (Task 1), behind mTLS + identity-scoped authz
+# (Task 3) - none of these CVEs are remotely exploitable through the
+# app's actual attack surface. Re-evaluated whenever the base image is
+# next bumped (Debian security backports typically land within weeks).
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# libblkid/libuuid/bsdutils/mount - integer overflow in libblkid partition parsing
+CVE-2026-53615
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# gzip - buffer overflow in LZH decompression path (not used by this app)
+CVE-2026-41992
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# libacl1 - symlink traversal privilege escalation via libacl functions
+CVE-2026-54369
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# libsqlite3 - integer overflow (app has no SQLite usage - see pentest report)
+CVE-2025-7458
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# ncurses/ncurses-base/libtinfo6 - buffer overflow (no TTY interaction in a containerized Flask service)
+CVE-2025-69720
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-base - regex engine produces silently incorrect results (Perl not invoked by this app)
+CVE-2026-13221
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-archive-tar - path traversal via crafted symlinks (module not used by this app)
+CVE-2026-42496
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl - heap buffer overflow compiling regexes on 32-bit builds (runner/image is 64-bit)
+CVE-2026-8376
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-base - additional regex-engine related CVE, same package/justification as CVE-2026-13221
+CVE-2026-42497
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-base - additional Perl interpreter CVE, Perl not invoked by this app
+CVE-2026-48962
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-base - additional Perl interpreter CVE, Perl not invoked by this app
+CVE-2026-57432
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# perl-base - additional Perl interpreter CVE, Perl not invoked by this app
+CVE-2026-9538
+
+# Found: 2026-07-20 | Owner: platform-team | Review-by: 2026-08-19
+# Debian package (older, 2023-disclosed) - no fix yet in this Debian 12 point release
+CVE-2023-45853
