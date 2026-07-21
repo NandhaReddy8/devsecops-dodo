@@ -52,6 +52,18 @@ verifies against this exact identity and is set to **Enforce** — see that file
 header for the sequencing rationale (it started in Audit mode until a real
 signature existed).
 
+## Evidence — pipeline run + signature verification
+
+All five gates green on the submission commit:
+
+![CI pipeline all green](../task4-pentest/evidence/screenshots/07-ci-pipeline.png)
+
+`cosign verify` against the pushed image, checked against the exact workflow
+identity above — validates the Rekor transparency-log entry and the Fulcio
+certificate chain, not just "a signature exists":
+
+![cosign verify output](../task4-pentest/evidence/screenshots/08-cosign-verify.png)
+
 ## GitOps (ArgoCD)
 
 `gitops/argocd/application.yaml` points ArgoCD at

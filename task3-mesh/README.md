@@ -31,6 +31,12 @@
 | Authorized identity allowed, unauthorized identity blocked | `docs/screenshots/task3-authz-allow-deny.txt` — `reporting-sa` gets `HTTP 200`; a second in-mesh pod with no matching `AuthorizationPolicy` rule gets `HTTP 403 RBAC: access denied`. |
 | NetworkPolicy is actually enforced (not just declared) | `docs/screenshots/task3-networkpolicy-enforcement.txt` — an unauthorized pod's request times out completely (`HTTP 000`, curl exit 28) *before* it ever reaches Envoy, versus the `403` above which comes *from* Envoy. This is the empirical proof of the two-layer distinction below. |
 
+![mTLS STRICT refuses a plaintext connection](../docs/screenshots/task3-mtls-strict-refused.png)
+
+![AuthorizationPolicy: identity-based allow vs deny](../docs/screenshots/task3-authz-identity-based.png)
+
+![NetworkPolicy defense-in-depth beneath the mesh](../docs/screenshots/task3-networkpolicy-defense-in-depth.png)
+
 `istioctl authn tls-check` — referenced in some older Istio docs — was
 removed from `istioctl` in this Istio version (1.30). The plaintext-refusal
 test above proves the same thing functionally rather than via that

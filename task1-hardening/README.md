@@ -52,6 +52,8 @@ bonus of dependency hygiene, not a substitute for fixing the code.
   `ledger-api` deployment kept serving traffic throughout with zero
   downtime.
 
+![PSS restricted rejecting the original insecure deployment](../docs/screenshots/task1-pss-rejection.png)
+
 ## Sequencing note (resolved)
 
 `require-signed-images` started in **Audit** mode with a placeholder OIDC
