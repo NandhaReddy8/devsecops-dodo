@@ -3,6 +3,6 @@ kind: Kustomization
 resources:
 - ../../../../task1-hardening/base
 images:
-- digest: sha256:68c84cca80c9fc90abc0fc8dd647eb6c00acd94c5ed37016838ff9778c7bd598
+- digest: sha256:2e328aa628d7971f7896faeb803bd0418c13ab9f491de6ebea532fcfb60a66c0
   name: ledger-api
   newName: ghcr.io/nandhareddy8/ledger-api
